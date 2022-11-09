@@ -1,5 +1,6 @@
 #include <iostream>
 #include <bitset>
+#include <string>
 
 #define BIAS_29 268435455
 
@@ -99,17 +100,17 @@ public:
 				mask++;
 			}
 			mantissa = mask & int_part;
-			m_f += mantissa << (23 - temp);
-			expo += BIAS_8;
+			m_f1 += mantissa << (23 - temp);
+			expo += BIAS_29;
 			expo <<= 23;
-			m_f += expo;
+			m_f1 += expo;
 		}
 	}
 
-	int getSignificant() {// 1
+	uint64_t getSignificant() {// 1
 		return m_f0 & (1 << 63);
 	}
-	int getExpo() {// 29 
+	uint64_t getExpo() {// 29 
 		int expo = 0;
 		for (int i = 34; i < 63; i++) {
 			expo += m_f0 & (1 << i);
@@ -170,7 +171,7 @@ public:
 
 int main(void) {
 
-	cout << (1 << 28)-1 << endl;
+	cout << (1 << 2) - 1 << endl;
 
 	return 0;
 }
