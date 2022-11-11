@@ -31,11 +31,11 @@ private:
 	uint64_t m_f1 : 36;
 
 public:
-	my_float_100(string& f_in) {
+	my_float_100(string f_in) {
 		m_f0 = 0;
 		m_f1 = 0;
 		int i = 1;
-		int int_part = 0;
+		uint64_t int_part = 0;
 		string tmp = "";
 		int mantissa_len_d = 0, mantissa_len_b = 0;
 		int mantissa = 0;
@@ -63,47 +63,63 @@ public:
 			}
 			mantissa = stoi(tmp);
 
-			int int_part_len_b = 0;
+			int int_part_len_b_m1 = 0;
+
 			int temp = int_part;
-			while (temp != 1) {
-				temp >>= 1;
-				int_part_len_b++;
+			if (int_part > 0) {
+				while (temp != 1) {	 // 0.XXX impossible
+					temp >>= 1;
+					int_part_len_b_m1++;
+				}
 			}
+
 			int standard = pow(10, mantissa_len_d);
-			int mantissa_idx = 23 - int_part_len_b;
+			int mantissa_idx = 64 - int_part_len_b_m1-1; //todo) +6 mantissa part
+
 			while (mantissa_idx > 0 && mantissa != 0) {
 				mantissa *= 2;
 				if (mantissa >= standard) {
 					int_part <<= 1;
 					int_part += 1;
-
 					mantissa -= standard;
 				}
-				else {
-					int_part <<= 1;
-				}
+				else int_part <<= 1;
 				mantissa_idx--;
-				mantissa_len_b++;
+				mantissa_len_b++; //todo) plif from while
 			}
 
-			int expo = -mantissa_len_b;
-			temp = int_part;
-			while (temp != 1) {
-				temp >>= 1;
-				expo++;
+			if (int_part_len_b_m1 == 0 && int_part > 0) { // if int starts with 0.xx(x>0)
+				temp = int_part;
+				while (temp != 1) {
+					temp >>= 1;
+					int_part_len_b_m1--;
+				}
 			}
-			temp = 0;
-			temp = expo + mantissa_len_b; //5 = 3+2
-			int mask = 0;
-			for (i = 0; i < temp; i++) {
-				mask <<= 1;
-				mask++;
-			}
-			mantissa = mask & int_part;
-			m_f1 += mantissa << (23 - temp);
-			expo += BIAS_29;
-			expo <<= 23;
-			m_f1 += expo;
+			
+			uint64_t expo = int_part_len_b_m1 +BIAS_29;
+			m_f0 += expo << 34;
+
+
+
+
+			//int expo = -mantissa_len_b;
+			//temp = int_part;
+			//while (temp != 1) {
+			//	temp >>= 1;
+			//	expo++;
+			//}
+			//temp = 0;
+			//temp = expo + mantissa_len_b; //5 = 3+2
+			//int mask = 0;
+			//for (i = 0; i < temp; i++) {
+			//	mask <<= 1;
+			//	mask++;
+			//}
+			//mantissa = mask & int_part;
+			//m_f1 += mantissa << (23 - temp);
+			//expo += BIAS_29;
+			//expo <<= 23;
+			//m_f1 += expo;
 		}
 	}
 
@@ -171,7 +187,8 @@ public:
 
 int main(void) {
 
-	cout << (1 << 2) - 1 << endl;
+	my_float_100 f("13.75");
+
 
 	return 0;
 }
