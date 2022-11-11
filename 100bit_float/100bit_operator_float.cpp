@@ -6,6 +6,15 @@
 
 using namespace std;
 
+int power(int n, int expo){
+	int result =1;
+	for(int i = 0; i < expo; i++){
+		result *= n;
+	}
+	return result;
+}
+
+
 struct mantissa_70 {
 	uint64_t mantissa0 : 64;
 	char mantissa1 : 6;
@@ -63,19 +72,18 @@ public:
 			}
 			mantissa = stoi(tmp);
 
-			int int_part_len_b_m1 = 0;
+			int int_part_len_b_m1=0, int_part_len_b = 0;
 
 			int temp = int_part;
 			if (int_part > 0) {
-				while (temp != 1) {	 // 0.XXX impossible
+				while (temp != 0) {	 // 0.XXX impossible
 					temp >>= 1;
-					int_part_len_b_m1++;
+					int_part_len_b++;
 				}
+				int_part_len_b_m1 = int_part_len_b-1;
 			}
-
-			int standard = pow(10, mantissa_len_d);
-			int mantissa_idx = 64 - int_part_len_b_m1-1; //todo) +6 mantissa part
-
+			int standard = power(10, (int)mantissa_len_d);
+			int mantissa_idx = 64 - int_part_len_b; //todo) +6 mantissa part
 			while (mantissa_idx > 0 && mantissa != 0) {
 				mantissa *= 2;
 				if (mantissa >= standard) {
@@ -88,38 +96,32 @@ public:
 				mantissa_len_b++; //todo) plif from while
 			}
 
-			if (int_part_len_b_m1 == 0 && int_part > 0) { // if int starts with 0.xx(x>0)
+			if (int_part_len_b == 0 && int_part > 0) { // if int starts with 0.xx(x>0)
 				temp = int_part;
 				while (temp != 1) {
 					temp >>= 1;
-					int_part_len_b_m1--;
+					int_part_len_b--;
 				}
+				int_part_len_b_m1 = int_part_len_b +1;
 			}
-			
+			cout << bitset<64>(m_f0) << endl;
+			cout << bitset<64>((m_f0 + BIAS_29) << 34) << endl;
 			uint64_t expo = int_part_len_b_m1 +BIAS_29;
 			m_f0 += expo << 34;
+			cout << "int_part: " << bitset<64>(int_part) << endl;
+			if(int_part_len_b + mantissa_len_b < 34){
+				m_f0 += int_part << 34-(int_part_len_b + mantissa_len_b);
+			}
+			else{
+				m_f1 += int_part;
+				m_f1 <<= 64-(int_part_len_b + mantissa_len_b)+30;
+				m_f0 += int_part >> (int_part_len_b + mantissa_len_b) - 34;
+			}
+			m_f0 += int_part << 34-(int_part_len_b + mantissa_len_b);
+			cout << bitset<64>(m_f0) << endl;
+			// add mantissa to m_f0, m_f1
 
 
-
-
-			//int expo = -mantissa_len_b;
-			//temp = int_part;
-			//while (temp != 1) {
-			//	temp >>= 1;
-			//	expo++;
-			//}
-			//temp = 0;
-			//temp = expo + mantissa_len_b; //5 = 3+2
-			//int mask = 0;
-			//for (i = 0; i < temp; i++) {
-			//	mask <<= 1;
-			//	mask++;
-			//}
-			//mantissa = mask & int_part;
-			//m_f1 += mantissa << (23 - temp);
-			//expo += BIAS_29;
-			//expo <<= 23;
-			//m_f1 += expo;
 		}
 	}
 
@@ -186,7 +188,6 @@ public:
 };
 
 int main(void) {
-
 	my_float_100 f("13.75");
 
 
